@@ -117,7 +117,7 @@ func (r *reconciler) ensureCRDs(ctx context.Context, binding *kubebindv1alpha1.A
 	if err != nil {
 		conditions.MarkFalse(
 			binding,
-			kubebindv1alpha1.APIServiceBindingConditionConnected,
+			kubebindv1alpha1.APIServiceBindingConditionSchemaInSync,
 			"APIServiceExportInvalid",
 			conditionsapi.ConditionSeverityError,
 			"APIServiceExport %s on the service provider cluster is invalid: %s",
@@ -145,7 +145,7 @@ func (r *reconciler) ensureCRDs(ctx context.Context, binding *kubebindv1alpha1.A
 		} else if errors.IsInvalid(err) {
 			conditions.MarkFalse(
 				binding,
-				kubebindv1alpha1.APIServiceBindingConditionConnected,
+				kubebindv1alpha1.APIServiceBindingConditionSchemaInSync,
 				"CustomResourceDefinitionCreateFailed",
 				conditionsapi.ConditionSeverityError,
 				"CustomResourceDefinition %s cannot be created: %s",
@@ -154,7 +154,7 @@ func (r *reconciler) ensureCRDs(ctx context.Context, binding *kubebindv1alpha1.A
 			return nil
 		}
 
-		conditions.MarkTrue(binding, kubebindv1alpha1.APIServiceBindingConditionConnected)
+		conditions.MarkTrue(binding, kubebindv1alpha1.APIServiceBindingConditionSchemaInSync)
 		return nil // we wait for a new reconcile to update APIServiceExport status
 	}
 
@@ -162,7 +162,7 @@ func (r *reconciler) ensureCRDs(ctx context.Context, binding *kubebindv1alpha1.A
 	if !kubebindhelpers.IsOwnedByBinding(binding.Name, binding.UID, existing.OwnerReferences) {
 		conditions.MarkFalse(
 			binding,
-			kubebindv1alpha1.APIServiceBindingConditionConnected,
+			kubebindv1alpha1.APIServiceBindingConditionSchemaInSync,
 			"ForeignCustomResourceDefinition",
 			conditionsapi.ConditionSeverityError,
 			"CustomResourceDefinition %s is not owned by kube-bind.io.",
@@ -177,7 +177,7 @@ func (r *reconciler) ensureCRDs(ctx context.Context, binding *kubebindv1alpha1.A
 	} else if errors.IsInvalid(err) {
 		conditions.MarkFalse(
 			binding,
-			kubebindv1alpha1.APIServiceBindingConditionConnected,
+			kubebindv1alpha1.APIServiceBindingConditionSchemaInSync,
 			"CustomResourceDefinitionUpdateFailed",
 			conditionsapi.ConditionSeverityError,
 			"CustomResourceDefinition %s cannot be updated: %s",
@@ -186,7 +186,7 @@ func (r *reconciler) ensureCRDs(ctx context.Context, binding *kubebindv1alpha1.A
 		return nil
 	}
 
-	conditions.MarkTrue(binding, kubebindv1alpha1.APIServiceBindingConditionConnected)
+	conditions.MarkTrue(binding, kubebindv1alpha1.APIServiceBindingConditionSchemaInSync)
 
 	return utilerrors.NewAggregate(errs)
 }

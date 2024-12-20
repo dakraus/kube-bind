@@ -44,7 +44,7 @@ func TestEnsureCRDs(t *testing.T) {
 			getCRD:           newGetCRD("bar", newCRD("bar")),
 			getServiceExport: newGetServiceExport("foo", newServiceExport("foo")),
 			expectConditions: conditionsapi.Conditions{
-				conditionsapi.Condition{Type: "Connected", Status: "True"},
+				conditionsapi.Condition{Type: "SchemaInSync", Status: "True"},
 			},
 		},
 		{
@@ -54,7 +54,7 @@ func TestEnsureCRDs(t *testing.T) {
 			getServiceExport: newGetServiceExport("foo", newServiceExport("foo")),
 			expectConditions: conditionsapi.Conditions{
 				conditionsapi.Condition{
-					Type: "Connected", Status: "False",
+					Type: "SchemaInSync", Status: "False",
 					Severity: "Error",
 					Reason:   "ForeignCustomResourceDefinition",
 					Message:  "CustomResourceDefinition foo is not owned by kube-bind.io.",
