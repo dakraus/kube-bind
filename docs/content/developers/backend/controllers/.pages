@@ -1,0 +1,5 @@
+nav:
+  - clusterbinding.md
+  - apiserviceexportrequest.md
+  - apiserviceexport.md
+  - apiservicenamespace.md
