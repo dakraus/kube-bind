@@ -1,0 +1,4 @@
+nav:
+  - index.md
+  - kubectl-bind.md
+  - kubectl-bind-apiservice.md

@@ -1,0 +1,5 @@
+nav:
+  - index.md
+  - clusterbinding.md
+  - apiservicenamespace.md
+  - apiservicebinding.md
