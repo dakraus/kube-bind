@@ -21,24 +21,50 @@ set -o xtrace
 
 REPO_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)
 
-CRD_REF_DOCS_VERSION=0.1.0
+CRD_REF_DOCS_VERSION="${CRD_REF_DOCS_VERSION:-v0.1.0}"
 
+SOURCE="${REPO_ROOT}/sdk/apis"
 DESTINATION="${REPO_ROOT}/docs/content/reference/api"
 mkdir -p "${DESTINATION}"
 
-SOURCE="${REPO_ROOT}/sdk/apis"
-
-which crd-ref-docs >/dev/null || {
-  echo "running go install github.com/elastic/crd-ref-docs@v${CRD_REF_DOCS_VERSION} in 5s... (ctrl-c to cancel)"
-  sleep 5
-  go install github.com/elastic/crd-ref-docs@v${CRD_REF_DOCS_VERSION}
-}
-
-$(go env GOPATH)/bin/crd-ref-docs \
+# Generate new content
+go run github.com/elastic/crd-ref-docs@${CRD_REF_DOCS_VERSION} \
   --source-path "${SOURCE}" \
   --max-depth 10 \
   --renderer markdown \
   --templates-dir "${REPO_ROOT}/docs/generators/api-ref/templates" \
   --config "${REPO_ROOT}/docs/generators/api-ref/config.yaml" \
-  --output-mode single \
+  --output-mode group \
   --output-path "${DESTINATION}"
+
+# Organize APIs by group
+for file in ${DESTINATION}/*.md; do
+  filename=$(basename $file)
+  apigroup=$(basename $filename .md)
+  mkdir -p "${DESTINATION}/${apigroup}"
+
+  csplit "${file}" \
+    --elide-empty-files \
+    --suppress-matched \
+    --prefix="${DESTINATION}/${apigroup}/zz_generated." \
+    --suffix-format='%03d.md' \
+    '/<!-- SPLIT -->/' '{*}'
+
+  for generated_file in ${DESTINATION}/${apigroup}/zz_generated.*.md; do
+    kind=$(sed --quiet 's/^title: \(.*\)$/\1/p' $generated_file)
+    mv "${generated_file}" "${DESTINATION}/${apigroup}/${kind@L}.md"
+  done
+
+  rm "${file}"
+done
+
+# Generate a .pages config file to override title case being applied to
+# folder names by default (https://github.com/mkdocs/mkdocs/issues/2086)
+echo "nav:" > ${DESTINATION}/.pages
+for dir in ${DESTINATION}/*/; do
+    if [ -d "${dir}" ]; then
+        echo ${dir}
+    fi
+    apigroup=$(basename $dir)
+    echo "  - ${apigroup}: ${apigroup}" >> ${DESTINATION}/.pages
+done
